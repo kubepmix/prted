@@ -47,8 +47,8 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value={{ inputs.prte_rev }}
-            type=raw,value={{ inputs.prte_rev }}-{{ inputs.openpmix_rev }}
+            type=raw,value=${{ inputs.prte_rev }}
+            type=raw,value=${{ inputs.prte_rev }}-${{ inputs.openpmix_rev }}
             type=raw,value=latest,enable={{ is_default_branch }}
 
       - name: Set up Docker Buildx

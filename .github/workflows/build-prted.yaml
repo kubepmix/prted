@@ -1,0 +1,80 @@
+name: Prted
+run-name: Build Prted Container
+
+on:
+  workflow_dispatch:
+    inputs:
+      openpmix_repo:
+        description: "OpenPMIx repository to build against"
+        required: true
+        default: "https://github.com/openpmix/openpmix"
+      openpmix_rev:
+        description: "OpenPMIx revision to build against"
+        required: true
+        default: "v5.0.11"
+      prte_repo:
+        description: "PRTE repository to build against"
+        required: true
+        default: "https://github.com/openpmix/prrte"
+      prte_rev:
+        description: "PRTE revision to build against"
+        required: true
+        default: "v3.0.14"
+
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-image:
+    runs-on: kubepmix-selfhosted
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: semver
+        id: semver
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          major_pattern: "/!:|BREAKING CHANGE:/"
+          major_regexp_flags: ""
+          minor_pattern: "/feat(\\(.+\\))?:/"
+          minor_regexp_flags: ""
+          version_format: "${major}.${minor}.${patch}"
+          change_path: "pytest-runner"
+          bump_each_commit: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value={{ inputs.prte_rev }}
+            type=raw,value=latest,enable={{ is_default_branch }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: remote
+          endpoint: ${{ secrets.BUILDKIT_ENDPOINT }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

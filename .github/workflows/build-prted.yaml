@@ -37,18 +37,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: semver
-        id: semver
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          major_pattern: "/!:|BREAKING CHANGE:/"
-          major_regexp_flags: ""
-          minor_pattern: "/feat(\\(.+\\))?:/"
-          minor_regexp_flags: ""
-          version_format: "${major}.${minor}.${patch}"
-          change_path: "pytest-runner"
-          bump_each_commit: true
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -64,6 +52,7 @@ jobs:
             ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value={{ inputs.prte_rev }}
+            type=raw,value={{ inputs.prte_rev }}-{{ inputs.openpmix_rev }}
             type=raw,value=latest,enable={{ is_default_branch }}
 
       - name: Set up Docker Buildx

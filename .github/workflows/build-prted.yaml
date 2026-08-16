@@ -21,10 +21,6 @@ on:
         required: true
         default: "v3.0.14"
 
-  push:
-    branches:
-      - main
-
 permissions:
   contents: read
   packages: write
